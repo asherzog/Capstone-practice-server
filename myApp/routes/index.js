@@ -69,19 +69,19 @@ router.get('/pdp/:id', function(req, res, next) {
     }
   ]).then(result => res.json(result));
 });
-router.get('/tc1', function(req, res, next) {
+router.get('/TC1-5000', function(req, res, next) {
   TC1.count({}).then(response => console.log(response));
   return TC1.find({})
     .then(response => res.json(response))
     .catch((err) => next(err));
 });
-router.get('/tc2', function(req, res, next) {
+router.get('/TC1-7500', function(req, res, next) {
   TC2.count({}).then(response => console.log(response));
   return TC2.find({})
     .then(response => res.json(response))
     .catch((err) => next(err));
 });
-router.get('/tc3', function(req, res, next) {
+router.get('/TC1-1000', function(req, res, next) {
   TC3.count({}).then(response => console.log(response));
   return TC3.find({})
     .then(response => res.json(response))
