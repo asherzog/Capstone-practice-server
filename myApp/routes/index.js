@@ -53,6 +53,14 @@ router.delete('/wells/:id', (req, res, next) => {
     }).catch((err) => next(err));
 });
 
+router.get('/pdpwells/:id', function(req, res, next) {
+  return Pdp.distinct("LEASE", {"Water_System" : req.params.id})
+    .then(result => {
+      res.json(result);
+    });
+});
+
+
 router.get('/pdp/:id', function(req, res, next) {
   return Pdp.aggregate([
     {
@@ -88,10 +96,10 @@ router.get('/TC1-1000', function(req, res, next) {
     .catch((err) => next(err));
 });
 
-router.get('/pdp/:id', (req, res, next) => {
-  return Pdp.find({"Water_System": 'W' + req.params.id}).then(result => res.json(result))
-    .catch((err) => next(err));
-});
+// router.get('/pdp/:id', (req, res, next) => {
+//   return Pdp.find({"Water_System": 'W' + req.params.id}).then(result => res.json(result))
+//     .catch((err) => next(err));
+// });
 
 router.get('/pdp', (req, res, next) => {
   return Pdp.find({}).then(result => res.json(result))
