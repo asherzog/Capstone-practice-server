@@ -20,6 +20,12 @@ router.get('/wells', function(req, res, next) {
     .catch((err) => next(err));
 });
 
+router.get('/allsystems', function(req, res, next) {
+  return wells.distinct("WATER_SYSTEM")
+    .then(response => res.json(response))
+    .catch((err) => next(err));
+});
+
 router.get('/wells/:id', function(req, res, next) {
   return wells.find({_id: req.params.id})
     .then(response => res.json(response))
