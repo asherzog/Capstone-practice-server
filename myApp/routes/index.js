@@ -216,7 +216,7 @@ router.get('/water/:id', function(req, res, next) {
 });
 
 router.get('/rig/:id', function(req, res, next) {
-  return wells.find({"RIG" : `Rig ${req.params.id}`})
+  return wells.find({"RIG" : req.params.id})
     .then(response => res.json(response))
     .catch((err) => next(err));
 });
@@ -269,25 +269,29 @@ router.get('/waterSystemDaily/:id', (req, res, next) => {
     }
   ])
   .then(result => {
-    pdp = result.map(pdp => {
-      let myArr = [];
-      let month = pdp._id.Date.split('/')[0];
-      let days = pdp._id.Date.split('/')[1];
-      let year = pdp._id.Date.split('/')[2];
-      let i = days;
-      while (i > 0) {
+    if (result.length > 0) {
+      pdp = result.map(pdp => {
+        let myArr = [];
+        let month = pdp._id.Date.split('/')[0];
+        let days = pdp._id.Date.split('/')[1];
+        let year = pdp._id.Date.split('/')[2];
+        let i = days;
+        while (i > 0) {
 
-        myArr.push({
-          day: convertDate(month + '/' + i + '/' + year, 0),
-          total: Math.round(pdp.total / days)
-        });
-        i--;
-      }
-      return myArr;
-    });
-    pdp = pdp.reduce((a, b) => {
-      return a.concat(b);
-    });
+          myArr.push({
+            day: convertDate(month + '/' + i + '/' + year, 0),
+            total: Math.round(pdp.total / days)
+          });
+          i--;
+        }
+        return myArr;
+      });
+      pdp = pdp.reduce((a, b) => {
+        return a.concat(b);
+      });
+    } else {
+      pdp = [];
+    }
     return pdp;
   })
   .then(pdp => {
@@ -329,23 +333,35 @@ router.get('/waterSystemDaily/:id', (req, res, next) => {
     });
   })
   .then(myArr => {
-    for (var j = 0; j < pdp.length; j++) {
-      var found = same.some(function (el) {
-        return el.day === pdp[j].day;
-      });
-      if (!found) { same.push({
-        Day: pdp[j].day,
-        PDP: numberWithCommas(pdp[j].total),
-        New_Wells: 0,
-        Total: pdp[j].total
-      }); }
-    }
-    for (var i = 0; i < myArr.length; i++) {
+    if (pdp.length > 0) {
       for (var j = 0; j < pdp.length; j++) {
-        if (myArr[i].day == pdp[j].day) {
-          same[j]['New_Wells'] = numberWithCommas(Number(same[j]['New_Wells']) + myArr[i].total);
-          same[j]['Total'] = numberWithCommas(Number(same[j]['Total']) + myArr[i].total);
+        var found = same.some(function (el) {
+          return el.day === pdp[j].day;
+        });
+        if (!found) { same.push({
+          Day: pdp[j].day,
+          PDP: numberWithCommas(pdp[j].total),
+          New_Wells: 0,
+          Total: pdp[j].total
+        }); }
+      }
+      for (var i = 0; i < myArr.length; i++) {
+        for (var j = 0; j < pdp.length; j++) {
+          if (myArr[i].day == pdp[j].day) {
+            same[j]['New_Wells'] = numberWithCommas(Number(same[j]['New_Wells']) + myArr[i].total);
+            same[j]['Total'] = numberWithCommas(Number(same[j]['Total']) + myArr[i].total);
+          }
         }
+      }
+      return same;
+    } else {
+      for (var i = 0; i < myArr.length; i++) {
+        same.push({
+          Day: myArr[i].day,
+          PDP: 0,
+          'New_Wells': numberWithCommas(myArr[i].total),
+          Total: numberWithCommas(myArr[i].total)
+        });
       }
     }
     return same;
@@ -378,21 +394,26 @@ router.get('/waterSystem/:id', (req, res, next) => {
     }
   ])
   .then(result => {
-    result.forEach(month => {
-      month._id.Date = convertDate(month._id.Date, 0);
-    });
-    result.sort(function(c,d){
-      var rx = /(\d+)\/(\d+)\/(\d+)/;
-      var a = Number(c._id.Date.replace(rx, '$3$1$20000'));
-      var b = Number(d._id.Date.replace(rx, '$3$1$20000'));
-      return a < b ? -1 : a == b ? 0 : 1;
-    });
-    pdp = result.map(pdp => {
-      return {
-        month: pdp._id.Date,
-        total: pdp.total
-      };
-    });
+    if (result.length > 0) {
+      result.forEach(month => {
+        month._id.Date = convertDate(month._id.Date, 0);
+      });
+      result.sort(function(c,d){
+        var rx = /(\d+)\/(\d+)\/(\d+)/;
+        var a = Number(c._id.Date.replace(rx, '$3$1$20000'));
+        var b = Number(d._id.Date.replace(rx, '$3$1$20000'));
+        return a < b ? -1 : a == b ? 0 : 1;
+      });
+      pdp = result.map(pdp => {
+        return {
+          month: pdp._id.Date,
+          total: pdp.total
+        };
+      });
+    }
+    else {
+      pdp = [];
+    }
     return pdp;
   })
   .then(pdp => {
@@ -445,23 +466,34 @@ router.get('/waterSystem/:id', (req, res, next) => {
     });
   })
   .then((myArr) => {
-    for (var j = 0; j < pdp.length; j++) {
-      var found = same.some(function (el) {
-        return el.month === pdp[j].month;
-      });
-      if (!found) { same.push({
-        Month: pdp[j].month,
-        PDP: numberWithCommas(pdp[j].total),
-        New_Wells: 0,
-        Total: pdp[j].total
-      }); }
-    }
-    for (var i = 0; i < myArr.length; i++) {
+    if (pdp.length > 0) {
       for (var j = 0; j < pdp.length; j++) {
-        if (myArr[i].month == pdp[j].month) {
-          same[j]['New_Wells'] = numberWithCommas(Number(same[j]['New_Wells']) + myArr[i].total);
-          same[j]['Total'] = numberWithCommas(Number(same[j]['Total']) + myArr[i].total);
+        var found = same.some(function (el) {
+          return el.month === pdp[j].month;
+        });
+        if (!found) { same.push({
+          Month: pdp[j].month,
+          PDP: numberWithCommas(pdp[j].total),
+          New_Wells: 0,
+          Total: pdp[j].total
+        }); }
+      }
+      for (var i = 0; i < myArr.length; i++) {
+        for (var j = 0; j < pdp.length; j++) {
+          if (myArr[i].month == pdp[j].month) {
+            same[j]['New_Wells'] = numberWithCommas(Number(same[j]['New_Wells']) + myArr[i].total);
+            same[j]['Total'] = numberWithCommas(Number(same[j]['Total']) + myArr[i].total);
+          }
         }
+      }
+    } else {
+      for (var i = 0; i < myArr.length; i++) {
+        same.push({
+          Month: myArr[i].month,
+          PDP: 0,
+          'New_Wells': numberWithCommas(myArr[i].total),
+          Total: numberWithCommas(myArr[i].total)
+        });
       }
     }
     return same;
