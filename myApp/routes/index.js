@@ -356,12 +356,14 @@ router.get('/waterSystemDaily/:id', (req, res, next) => {
       return same;
     } else {
       for (var i = 0; i < myArr.length; i++) {
-        same.push({
-          Day: myArr[i].day,
-          PDP: 0,
-          'New_Wells': numberWithCommas(myArr[i].total),
-          Total: numberWithCommas(myArr[i].total)
-        });
+        if (new Date(myArr[i].day).getTime() < new Date(new Date().setFullYear(new Date().getFullYear() + 2)).getTime()) {
+          same.push({
+            Day: myArr[i].day,
+            PDP: 0,
+            'New_Wells': numberWithCommas(myArr[i].total),
+            Total: numberWithCommas(myArr[i].total)
+          });
+        }
       }
     }
     return same;
@@ -488,12 +490,14 @@ router.get('/waterSystem/:id', (req, res, next) => {
       }
     } else {
       for (var i = 0; i < myArr.length; i++) {
-        same.push({
-          Month: myArr[i].month,
-          PDP: 0,
-          'New_Wells': numberWithCommas(myArr[i].total),
-          Total: numberWithCommas(myArr[i].total)
-        });
+        if (new Date(myArr[i].month).getTime() < new Date(new Date().setFullYear(new Date().getFullYear() + 2)).getTime()) {
+          same.push({
+            Month: myArr[i].month,
+            PDP: 0,
+            'New_Wells': numberWithCommas(myArr[i].total),
+            Total: numberWithCommas(myArr[i].total)
+          });
+        }
       }
     }
     return same;
