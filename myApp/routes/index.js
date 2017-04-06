@@ -59,6 +59,38 @@ router.post('/upload', upload.any(), function(req, res, next) {
   });
 });
 
+router.post('/uploadUpdate', (req, res, next) => {
+  let columnNames = req.body;
+  let originalColumns = parsed[0];
+  let oldKeyArr = [];
+  let newTc = [];
+  let newPdp = [];
+  Object.keys(originalColumns).forEach(oldKey => {
+    Object.keys(columnNames).forEach(key => {
+      if (columnNames[key] == originalColumns[oldKey]) {
+        oldKeyArr.push(oldKey);
+      }
+    });
+  });
+  for (var i = 0; i < parsed.length; i++) {
+    let day = {};
+    for (var j = 0; j < oldKeyArr.length; j++) {
+      day[Object.keys(columnNames)[j]] = parsed[i][oldKeyArr[j]];
+    }
+    if (type == 'Type Curve') {
+      day['TC'] = name;
+      newTc.push(day);
+    } else {
+      newPdp.push(day);
+    }
+  }
+  console.log(newTc);
+  console.log(newPdp);
+  res.json({
+    message: '👍'
+  });
+});
+
 router.get('/testing', (req, res, next) => {
   res.json({
     name,
