@@ -1,8 +1,10 @@
 let d3 = require('d3');
 let express = require('express');
-
+var multer = require('multer');
+var upload = multer()
 let router = express.Router();
 var alasql = require('alasql');
+var xlsx = require('xlsx')
 
 
 const db = require('monk')('localhost/testDB');
@@ -11,6 +13,7 @@ const Pdp = db.get('pdp');
 const TC1 = db.get('typeCurve1');
 const TC2 = db.get('typeCurve2');
 const TC3 = db.get('typeCurve3');
+
 
 function isValidWell(well) {
   let validRig = typeof well.RIG == 'string' &&
@@ -29,6 +32,40 @@ function isValidWell(well) {
   let validSpud = (new Date(well.SPUD) !== "Invalid Date") && !isNaN(new Date(well.SPUD));
   return validRig && validWell && validSystem && validTC && validSpudSpud && validSpud;
 }
+
+let name = '';
+let type = '';
+let parsed = '';
+
+router.post('/upload', upload.any(), function(req, res, next) {
+  type = req.body.item;
+  name = req.body.name;
+  let arraybuffer = req.files[0].buffer;
+  var data = new Uint8Array(arraybuffer);
+  var arr = new Array();
+  for (var i = 0; i != data.length; ++i) {
+    arr[i] = String.fromCharCode(data[i]);
+  };
+  var bstr = arr.join("");
+  var workbook = xlsx.read(bstr, {type:"binary"});
+  var first_sheet_name = workbook.SheetNames[0];
+  var worksheet = workbook.Sheets[first_sheet_name];
+  parsed = xlsx.utils.sheet_to_json(worksheet, {header: 'A', raw: true});
+  parsed.shift();
+  res.json({
+    type,
+    name,
+    data: Object.values(parsed[0])
+  });
+});
+
+router.get('/testing', (req, res, next) => {
+  res.json({
+    name,
+    type,
+    parsed
+  });
+});
 
 
 router.get('/wells', function(req, res, next) {
